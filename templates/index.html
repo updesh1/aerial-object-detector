@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aerial Object Detector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white shadow-md">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold flex items-center">
+                <i class="fa-solid fa-plane-up mr-2"></i>
+                Aerial Object Detector
+            </div>
+            <div class="text-sm font-medium">
+                YOLOv11 AI Model
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Sidebar Controls -->
+            <div class="bg-white rounded-lg shadow-md p-6 h-fit">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Configuration</h2>
+                
+                <form id="uploadForm" class="space-y-6">
+                    <!-- Media Type -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="mediaType" value="image" class="form-radio text-blue-600" checked>
+                                <span class="ml-2">Image</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="mediaType" value="video" class="form-radio text-blue-600">
+                                <span class="ml-2">Video</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Confidence Slider -->
+                    <div>
+                        <label for="confidence" class="block text-sm font-medium text-gray-700 mb-2">
+                            Confidence Threshold: <span id="confValue">0.25</span>
+                        </label>
+                        <input type="range" id="confidence" name="confidence" min="0.1" max="1.0" step="0.05" value="0.25" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- File Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload File</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-500 transition-colors cursor-pointer" id="dropZone">
+                            <div class="space-y-1 text-center">
+                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                                <div class="flex text-sm text-gray-600 justify-center">
+                                    <label for="fileUpload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                                        <span>Upload a file</span>
+                                        <input id="fileUpload" name="fileUpload" type="file" class="sr-only" accept="image/*">
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500" id="fileHelp">PNG, JPG, JPEG up to 10MB</p>
+                                <p class="text-sm font-medium text-gray-800 mt-2 hidden" id="fileNameDisplay"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out flex justify-center items-center">
+                        <span>Run Inference</span>
+                        <i class="fa-solid fa-microchip ml-2"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results Area -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Status/Loading -->
+                <div id="loadingIndicator" class="hidden bg-blue-50 border-l-4 border-blue-400 p-4 rounded shadow-sm">
+                    <div class="flex items-center">
+                        <div class="spinner border-4 border-blue-200 border-t-blue-600 rounded-full w-6 h-6 animate-spin mr-3"></div>
+                        <p class="text-blue-700">Processing media, running YOLO inference...</p>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden bg-red-50 border-l-4 border-red-400 p-4 rounded shadow-sm">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-triangle-exclamation text-red-500 mr-3"></i>
+                        <p class="text-red-700" id="errorText">An error occurred.</p>
+                    </div>
+                </div>
+
+                <!-- Results Display -->
+                <div id="resultsContainer" class="hidden">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                            <h3 class="font-semibold text-lg text-gray-700">Detection Results</h3>
+                        </div>
+                        
+                        <div class="p-6">
+                            <!-- Image/Video Container -->
+                            <div class="flex justify-center mb-6 bg-gray-100 rounded-lg overflow-hidden relative min-h-[300px]">
+                                <img id="resultImage" class="hidden max-w-full max-h-[600px] object-contain" alt="Detection result">
+                                <video id="resultVideo" class="hidden max-w-full max-h-[600px] object-contain" controls>
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+
+                            <!-- Statistics -->
+                            <h4 class="font-semibold text-gray-700 mb-3 border-b pb-1">Detection Statistics</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statsGrid">
+                                <!-- Stats injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Initial Placeholder -->
+                <div id="initialPlaceholder" class="bg-white rounded-lg shadow-md p-10 flex flex-col items-center justify-center text-center text-gray-500 border-2 border-dashed border-gray-200 h-full min-h-[400px]">
+                    <i class="fa-regular fa-image text-5xl mb-4 text-gray-300"></i>
+                    <h3 class="text-xl font-medium mb-2">No Results Yet</h3>
+                    <p>Upload an image or video and run inference to see the detections here.</p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white text-center py-4 mt-auto">
+        <p class="text-sm">&copy; 2026 Aerial Object Detector. Powered by YOLO & FastAPI.</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

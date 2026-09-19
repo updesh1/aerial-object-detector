@@ -1,0 +1,9 @@
+/* Custom styles that complement Tailwind */
+.spinner {
+    border-top-color: transparent;
+}
+
+/* Smooth transitions */
+#resultsContainer {
+    transition: opacity 0.3s ease-in-out;
+}

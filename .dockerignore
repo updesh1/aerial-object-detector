@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+
+# Outputs & Uploads
+static/uploads/*
+!static/uploads/.gitkeep
+outputs/images/*
+!outputs/images/.gitkeep
+outputs/videos/*
+!outputs/videos/.gitkeep
+
+# IDEs
+.vscode/
+.idea/

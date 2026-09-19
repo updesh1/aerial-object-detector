@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Uploads and Outputs (Keep directory structure but ignore files)
+static/uploads/*
+!static/uploads/.gitkeep
+outputs/images/*
+!outputs/images/.gitkeep
+outputs/videos/*
+!outputs/videos/.gitkeep
+
+# Ignore YOLO weights (optional, might want to commit a small model for demo)
+# models/*.pt
+
+# OS files
+.DS_Store
+Thumbs.db
